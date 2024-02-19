@@ -6,7 +6,7 @@ The project is deployed using Docker Compose. To run it, follow these steps:
 
 1. Make sure you have Docker and Docker Compose installed.
 
-2. Create a `.env` file in the project root and specify the required environment variables:
+2. Create a `.env` file in the both django and react app and specify the required environment variables:
 
    ```dotenv
    DOCKER_DATABASE_URL=
