@@ -1,0 +1,59 @@
+version: "3"
+services:
+
+  app:
+    container_name: messenger
+    build:
+      context: ./messenger_api
+
+    command: sh -c "python manage.py migrate && daphne -b 0.0.0.0 messenger.asgi:application -p 8080"
+    volumes:
+      - ./messenger_api:/app/messenger_api
+    ports:
+      - 8080:8080
+    env_file:
+      - messenger_api/.env
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+
+    depends_on:
+      - pg_database
+    restart: always
+
+  pg_database:
+    image: postgres:latest
+    container_name: pg_database
+    environment:
+      POSTGRES_DB: ${DOCKER_POSTGRES_DB}
+      POSTGRES_USER: ${DOCKER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DOCKER_POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  client:
+    build:
+      context: ./messenger_client
+    command: ["npm", "start"]
+    environment:
+      REACT_APP_API_URL: ${DOCKER_REACT_APP_API_URL}
+      REACT_APP_SOCKET_URL: ${DOCKER_REACT_APP_SOCKET_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+
+
+  nginx:
+    build:
+      context: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+      - client
